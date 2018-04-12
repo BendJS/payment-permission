@@ -3,37 +3,34 @@ pragma solidity ^0.4.0;
 contract PaymentPermission {
 
     //primary key => Wallet struct
-    mapping (int => Wallet)     public wallets;
+    mapping (int => Wallet) public wallets;
     
-    //primary key => WalletUser struct
-    mapping (int => WalletUser) public walletUsers;
-    
-    // walletID => WalletUser structs
-    mapping (int => WalletUser[]) walletsUsers;
+    //primary key => User struct
+    mapping (int => User) public users;
 
-    // user address => WalletUser ids
-    mapping (address => int[])  userWallets;
+    // user address => User ids
+    mapping (address => int[]) public addressToUserIds;
 
-
-    int public nextWalletId;
-    int public nextUserId;
+    int nextWalletId;
+    int nextUserId;
 
     struct Wallet {
         int id;
         uint funds;
+        int[] users;
         address[] admins;
     }
 
-    struct WalletUser {
+    struct User {
         int id;
         int walletId;
-        address userAddress;
+        address _address;
         mapping ( address => uint ) amountCanSendToAddress;
     }
 
     modifier senderIsWalletAdmin(int walletId) {
         bool foundAdmin;
-        address[] storage admins = wallets[walletId].admins;    
+        address[] storage admins = wallets[walletId].admins;
         for (uint index = 0; index < admins.length; index++) {
             if (admins[index] == msg.sender) {
                 foundAdmin = true;
@@ -68,14 +65,14 @@ contract PaymentPermission {
     function createWalletUser(int walletId, address userAddress) public senderIsWalletAdmin(walletId) {
         int id = nextUserId++;
 
-        WalletUser storage walletUser = walletUsers[id];
+        User storage user = users[id];
 
-        walletUser.id = id;
-        walletUser.walletId = walletId;
-        walletUser.userAddress = userAddress;
+        user.id = id;
+        user.walletId = walletId;
+        user._address = userAddress;
         
-        userWallets[userAddress].push(id);
-        walletsUsers[walletId].push(walletUser);
+        addressToUserIds[userAddress].push(id);
+        wallets[walletId].users.push(user.id);
     }
 
     function addFundsToWallet(int walletId) public payable senderIsWalletAdmin(walletId) returns (uint) {
@@ -84,52 +81,71 @@ contract PaymentPermission {
         return msg.value;
     }
 
-    function allowSendTo(int walletId, address sender, address receiver) public payable senderIsWalletAdmin(walletId) {
-        WalletUser[] storage walletusers = walletsUsers[walletId];
+    function allowSendTo(address sender, address receiver, int walletId, uint allowedFunds) public payable senderIsWalletAdmin(walletId) {
         Wallet storage wallet = wallets[walletId];
-        
-        require(wallet.funds >= msg.value);
+        int[] storage walletsUsersIds = wallet.users;
 
-        for (uint index = 0; index < walletusers.length; index++) {
-            if (walletusers[index].userAddress == sender) {
-                walletusers[index].amountCanSendToAddress[receiver] = msg.value;
+        require(wallet.funds >= allowedFunds);
+
+        for (uint index = 0; index < walletsUsersIds.length; index++) {
+            
+            User storage user = users[walletsUsersIds[index]];
+            
+            if (user._address == sender) {
+                user.amountCanSendToAddress[receiver] = allowedFunds;
                 break;
             }
         }
     }
 
     function sendTo(int walletId, uint amount, address receiverAddress) public {
-        WalletUser[] storage walletusers = walletsUsers[walletId];
+        
         Wallet storage wallet = wallets[walletId];
+        int[] storage walletsUsersIds = wallet.users;
 
         require(wallet.funds >= amount);
 
-        for (uint index = 0; index < walletusers.length; index++) {
-            if (walletusers[index].userAddress == msg.sender) {
-                WalletUser storage walletUser = walletusers[index];
-                require(walletUser.amountCanSendToAddress[receiverAddress] >= amount);
+        for (uint index = 0; index < walletsUsersIds.length; index++) {
+            
+            User storage user = users[walletsUsersIds[index]];
+            
+            if (user._address == msg.sender) {
+                require(user.amountCanSendToAddress[receiverAddress] >= amount);
+                
                 receiverAddress.transfer(amount);
+
+                user.amountCanSendToAddress[receiverAddress] -= amount;
                 wallet.funds -= amount;
+                
                 break;
             }
         }
     }
     
     function updateUserFundsOnWallet(int walletId, uint amount, address sender, address receiver) public senderIsWalletAdmin(walletId) {
-        WalletUser[] storage walletusers = walletsUsers[walletId];
+        int[] storage walletsUsersIds = wallets[walletId].users;
         
-        for (uint index = 0; index < walletusers.length; index++) {
-            if (walletusers[index].userAddress == sender) {
-                WalletUser storage walletUser = walletusers[index];
-                walletUser.amountCanSendToAddress[receiver] = amount;
+        for (uint index = 0; index < walletsUsersIds.length; index++) {
+            
+            User storage user = users[walletsUsersIds[index]];
+
+            if (user._address == sender) {
+                user.amountCanSendToAddress[receiver] = amount;
                 break;
             }
         }
     }
 
-    function getWalletIds(address user) public constant returns (int[]) {
-        int[] storage walletIds = userWallets[user];
-        return walletIds;
+    function getWalletIds(address userAddress) public returns (int[]) {
+        int[] storage walletUserStructsIds = addressToUserIds[userAddress];
+        int[] storage usersWalletsIds;
+
+        for (uint index = 0; index < walletUserStructsIds.length; index++) {
+            User storage user = users[walletUserStructsIds[index]];
+            usersWalletsIds.push(user.walletId);  
+        }
+
+        return usersWalletsIds;
     }
 
     function getWalletAdmins(int walletId) public constant returns (address[]) {
