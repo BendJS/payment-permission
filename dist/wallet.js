@@ -72,5 +72,15 @@ var PaymentPermission =
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
+class Wallet {
+	constructor() {
+
+	}
+}
+/* harmony export (immutable) */ __webpack_exports__["Wallet"] = Wallet;
+
+
+
+
 /***/ })
 /******/ ]);

@@ -11,4 +11,10 @@ app.get("/", function (req, res) {
   res.sendFile(path.join(DIST_DIR, "index.html"));
 });
 
+
+app.get("/wallets", function (req, res) {
+    res.sendFile(path.join(DIST_DIR, "wallets.html"));
+});
+  
+
 app.listen(PORT);

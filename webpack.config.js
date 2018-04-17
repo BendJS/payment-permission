@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
   entry: {
-    'payment-permission': './src/payment-permission.js'
+    'table': './src/table.js'
   },
   output: {
     filename: '[name].js',

@@ -1,0 +1,79 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Payment Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
+    <script src="./web3.min.js"></script>
+    <script src="./table.js"></script>
+  </head>
+  <body>
+  <div class="row">
+      <div class="col s12 m5" id="admin-table-container">
+        <div class="card-panel teal">
+          <h1 class="white-text">Wallets controlled</h1>
+          <a class="waves-effect waves-light btn" id="create-wallet">Create Wallet</a>
+          <ul class="collection">
+          </ul>
+        </div>
+
+        <div class="input-field col s12">
+          <input placeholder="0" id="wallet_id" type="text" class="validate">
+          <label for="wallet_id">Wallet Id</label>
+        </div>
+
+        <div class="input-field col s12">
+          <input placeholder="0x3db0918e990c46EbB85E8Ec6785344312982ec1B" id="user_address" type="text" class="validate">
+          <label for="user_address">User Address</label>
+        </div>
+        
+        <div class="input-field col s12">
+          <input placeholder="09312999" id="funds" type="text" class="validate">
+          <label for="funds">Funds</label>
+        </div>
+        
+        <div class="input-field col s12">
+          <input placeholder="0x3db0918e990c4823884992c6785344312982ec1B" id="receiving-address" type="text" class="validate">
+          <label for="receiving-address">Receiving Address</label>
+        </div>
+        
+        <div class="input-field col s12">
+          <input placeholder="902308140129834" id="receiving-amount" type="text" class="validate">
+          <label for="receiving-amount">Amount Can Send</label>
+        </div>
+        <a class="waves-effect waves-light btn" id="add-user-to-wallet">Add user to wallet</a>
+        <a class="waves-effect waves-light btn" id="add-funds-to-wallet">Add funds to wallet</a>
+        <a class="waves-effect waves-light btn" id="allow-send-funds">Allow user to send funds</a>
+        <script>
+          new PaymentPermission.AdminTable("#admin-table-container");
+        </script>
+      </div>
+      <div class="col s12 m5" id="user-table-container">
+        <div class="card-panel teal">
+          <h1 class="white-text">Wallets member of</h1>
+          <ul class="collection">
+          </ul> 
+        </div>
+
+        <div class="input-field col s12">
+          <input placeholder="500" id="send-amount" type="text" class="validate">
+          <label for="send-amount">Amount Sending</label>
+        </div>
+        <div class="input-field col s12">
+          <input placeholder="0x3db0918e990c4823884992c6785344312982ec1B" id="send-to-user" type="text" class="validate">
+          <label for="send-to-user">User To Send Funds To</label>
+        </div>
+        <div class="input-field col s12">
+          <input placeholder="3" id="wallet-to-take-from" type="text" class="validate">
+          <label for="wallet-to-take-from">Wallet to take from</label>
+        </div>
+
+        <a class="waves-effect waves-light btn" id="send-funds-to-user">Send Funds</a>
+        <script>
+          new PaymentPermission.UserTable("#user-table-container");
+        </script>
+      </div>
+    </div>
+  </body>
+</html>

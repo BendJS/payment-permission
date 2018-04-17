@@ -66,7 +66,15 @@ contract('Payment Permission', function([admin, user1, user2, user3, ...addresse
     const oldUser2Balance = web3.eth.getBalance(user2).toNumber();
     // get wallet funds prior
     const [ _nil, oldWalletFunds ] = (await paymentPermission.wallets(WALLET_TO_EXAMINE)).map(val => val.toNumber());
-    
+    // get the user that has been created and associated with the wallet
+    let [ nilUser1, nilUser2, fundedUser ] = (await paymentPermission.getUserIds.call(user1)).map(val => val.toNumber());
+    // get the address that the user can send money to
+    let [ availableAddress ] = await paymentPermission.getAddressesAvailableToUser(fundedUser);
+    // check that the user can send the money
+    assert.equal(availableAddress, user2, 'user1 can send money to user2');
+    // get the amount that the user can send to user2
+    let amountAvailableOnAddress = await paymentPermission.getAmountAvailableToUserOnAddress.call(fundedUser, user2);
+    assert.equal(amountAvailableOnAddress.toNumber(), WEI_CAN_SEND, 'user1 can send correct amount to user2');
     
     // send funds to address from user 1
     await paymentPermission.sendTo(WALLET_TO_EXAMINE, WEI_CAN_SEND, user2, { from: user1 });
